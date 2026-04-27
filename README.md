@@ -1,15 +1,8 @@
 # venue
 
-A node.js module to create a web radio.
+A node.js module to create a web radio. (this is the better version)
 
 This will list every single file (subdirectories included) in a folder and will play them randomly while avoiding to repeat a particular song.
-
-## Dependencies
-
-* express: 4.0.x
-* walk: 2.3.x
-* socket.io: "0.9.x
-* colors: 0.6.x
 
 ## Installation
 
