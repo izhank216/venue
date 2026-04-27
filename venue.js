@@ -11,11 +11,10 @@ function venue(data) {
     var that = this;
     EventEmitter.call(this);
 
-    if (data !== undefined) {
-        this.title = (data.title === undefined ? "VenueFM" : data.title);
-        this.path  = (data.path === undefined ? path.join(__dirname, "music") : data.path);
-        this.port  = 4821; 
-    }
+    var config = data || {};
+    this.title = config.title || "VenueFM";
+    this.path  = config.path || path.join(__dirname, "music");
+    this.port  = 4821; 
 
     this.can     = [];
     this.cant    = [];
@@ -60,7 +59,8 @@ function venue(data) {
                 ws.send(LZString.compressToUTF16(JSON.stringify(handshakeData)));
 
                 ws.on('message', function incoming(message) {
-                    const decompressed = LZString.decompressFromUTF16(message);
+                    // Convert Buffer to String
+                    const decompressed = LZString.decompressFromUTF16(message.toString());
                     let parsed;
                     
                     try {
