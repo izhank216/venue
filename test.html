@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VenueFM (better version)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #eee; text-align: center; padding-top: 50px; }
+        #content { display: none; }
+        #loading { font-style: italic; color: #888; }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #333; color: white; border: 1px solid #555; }
+        button:hover { background: #444; }
+        #title { font-weight: bold; color: #00cfcf; margin: 20px; display: block; }
+    </style>
+</head>
+<body>
+
+    <div id="loading">Connecting to VenueFM (better version)...</div>
+
+    <div id="content">
+        <h1>VenueFM (better version)</h1>
+        <div id="title">Waiting for track...</div>
+        
+        <audio id="player" controls></audio>
+
+        <div class="controls">
+            <button id="pause">pause</button>
+            <button id="next">next</button>
+        </div>
+    </div>
+
+    <script src="client.js"></script>
+</body>
+</html>
