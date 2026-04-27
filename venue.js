@@ -32,61 +32,68 @@ function venue(data) {
     });
 
     this.startWsServer = function() {
-        console.log("   info   - ".cyan + "Started to find files in directory '" + this.path + "'");
+        console.log("   info   - ".cyan + "Scanning root directory: '" + this.path + "'");
 
-        fs.walk(this.path)
-            .on('data', function(item) {
-                if (item.stats.isFile()) {
-                    var ext = path.extname(item.path).toLowerCase();
+        try {
+            var files = fs.readdirSync(this.path);
+            
+            files.forEach(function(file) {
+                var fullPath = path.join(that.path, file);
+                var stat = fs.statSync(fullPath);
+
+                if (stat.isFile()) {
+                    var ext = path.extname(file).toLowerCase();
                     if (ext === ".mp3" || ext === ".ogg" || ext === ".wav") {
-                        var relativePath = item.path.replace(that.path, "");
-                        that.can.push(relativePath);
+                        that.can.push("/" + file);
                     }
                 }
-            })
-            .on('end', function() {
-                console.log("   ok     - ".green + "Found the following number of files: " + that.can.length);
-
-                const wss = new WebSocket.Server({ port: that.port });
-
-                console.log("   info   - ".cyan + "WS Server started, listening on port " + that.port);
-
-                wss.on('connection', function connection(ws) {
-                    const handshakeData = { title: that.title, event: 'handshake' };
-                    ws.send(LZString.compressToUTF16(JSON.stringify(handshakeData)));
-
-                    ws.on('message', function incoming(message) {
-                        const decompressed = LZString.decompressFromUTF16(message);
-                        let parsed;
-                        
-                        try {
-                            parsed = JSON.parse(decompressed);
-                        } catch(e) {
-                            return;
-                        }
-
-                        if (parsed.event === 'handshake' || parsed.event === 'next') {
-                            that.nextMusic(wss);
-                        }
-                    });
-                });
-
-                that.emit('ready');
             });
+
+            console.log("   ok     - ".green + "Found " + that.can.length + " files in root.");
+
+            const wss = new WebSocket.Server({ port: that.port });
+
+            console.log("   info   - ".cyan + "WS Server started, listening on port " + that.port);
+
+            wss.on('connection', function connection(ws) {
+                const handshakeData = { title: that.title, event: 'handshake' };
+                ws.send(LZString.compressToUTF16(JSON.stringify(handshakeData)));
+
+                ws.on('message', function incoming(message) {
+                    const decompressed = LZString.decompressFromUTF16(message);
+                    let parsed;
+                    
+                    try {
+                        parsed = JSON.parse(decompressed);
+                    } catch(e) {
+                        return;
+                    }
+
+                    if (parsed.event === 'handshake' || parsed.event === 'next') {
+                        that.nextMusic(wss);
+                    }
+                });
+            });
+
+            that.emit('ready');
+
+        } catch (err) {
+            console.log("   error  - ".red + "Could not read directory: " + err.message);
+        }
     };
 
     this.nextMusic = function(wss) {
         if (that.can.length === 0 && that.cant.length === 0) return;
 
-        var old = that.can.splice(that.current, 1);
+        var old = that.can.splice(that.current, 1)[0];
 
         if (that.can.length === 0) {
             that.can = that.cant;
+            if(old) that.can.push(old);
             that.current = that.can.length - 1;
-            that.can.push(old);
             that.cant = [];
         } else {
-            if(old.length > 0) that.cant.push(old);
+            if(old) that.cant.push(old);
             that.current = Math.floor(Math.random() * that.can.length);
         }
 
@@ -105,3 +112,7 @@ exports.startWsServer = function(data) {
     v.startWsServer();
     return v;
 };
+
+if (require.main === module) {
+    exports.startWsServer();
+}
